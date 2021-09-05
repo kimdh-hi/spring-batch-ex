@@ -3,6 +3,7 @@ package com.spingbatchex.lab3;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -59,7 +60,7 @@ public class ChunkProcessingConfig {
     }
     // 배치 대상 데이터 처리
     private ItemWriter<String> itemWriter() {
-        return items -> log.info("chunk size = {}", items.size());
+        return items -> log.info("(chunk) chunk size = {}", items.size());
     }
 
     @Bean
@@ -78,18 +79,16 @@ public class ChunkProcessingConfig {
 
         return (contribution, chunkContext) -> {
             StepExecution stepExecution = contribution.getStepExecution();
+            JobParameters jobParameters = stepExecution.getJobParameters();
 
-            int chunkSize = 10;
+            int chunkSize = Integer.parseInt(jobParameters.getString("chunkSize", "0"));
+            //int chunkSize = 10;
             int fromIdx = stepExecution.getReadCount();
             int toIdx = fromIdx + chunkSize;
 
             if (fromIdx >= testData.size()) return RepeatStatus.FINISHED;
 
-//            testData.subList(fromIdx, toIdx).stream()
-//                    .map(t -> t + " + batch processing").collect(Collectors.toList());
-//            testData.forEach(log::info);
-
-            log.info("chunk size = {}", testData.subList(fromIdx, toIdx).size());
+            log.info("(task) chunk size = {}", testData.subList(fromIdx, toIdx).size());
 
             stepExecution.setReadCount(toIdx);
 
