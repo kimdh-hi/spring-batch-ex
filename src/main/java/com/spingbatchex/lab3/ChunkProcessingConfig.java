@@ -1,5 +1,6 @@
 package com.spingbatchex.lab3;
 
+import antlr.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -7,6 +8,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -14,6 +16,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,16 +37,17 @@ public class ChunkProcessingConfig {
         return jbf.get("chunkJob")
                 .incrementer(new RunIdIncrementer())
                 .start(taskBasedStep())
-                .next(chunkBasedStep())
+                .next(chunkBasedStep(null))
                 .build();
     }
 
     @Bean
-    public Step chunkBasedStep() {
+    @JobScope
+    public Step chunkBasedStep(@Value("#{jobParameters[chunkSize]}") String chunkSize) {
         return sbf.get("chunkStep")
                 // <INPUT_TYPE, OUTPUT_TYPE>
                 // chunk(num) : itemWriter 의 OUTPUT_TYPE 리스트의 크기
-                .<String,String>chunk(10)
+                .<String,String>chunk(chunkSize.isEmpty() ? 10 : Integer.parseInt(chunkSize))
                 .reader(itemReader())
                 .processor(itemProcessor())
                 .writer(itemWriter())
