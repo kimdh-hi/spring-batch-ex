@@ -9,6 +9,8 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -18,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class ItemReaderConfig {
     private final JobBuilderFactory jbf;
     private final StepBuilderFactory sbf;
+    private final DataSource dataSource;
 
     @Bean
     public Job itemReaderJob() throws Exception {
@@ -35,6 +39,7 @@ public class ItemReaderConfig {
                 .incrementer(new RunIdIncrementer())
                 .start(customItemReaderStep())
                 .next(csvFileReaderStep())
+                .next(jdbcCursorItemReaderStep())
                 .build();
     }
 
@@ -54,6 +59,34 @@ public class ItemReaderConfig {
                 .reader(this.csvFileReader())
                 .writer(this.itemWriter())
                 .build();
+    }
+
+    @Bean
+    public Step jdbcCursorItemReaderStep() throws Exception {
+        return sbf.get("jdbcCursorItemStep")
+                .<Person, Person>chunk(10)
+                .reader(this.jdbcCursorItemReader())
+                .writer(this.itemWriter())
+                .build();
+    }
+
+    /**
+     * JdbcCursorItemReader
+     */
+    private JdbcCursorItemReader<Person> jdbcCursorItemReader() throws Exception {
+        JdbcCursorItemReader<Person> itemReader = new JdbcCursorItemReaderBuilder<Person>()
+                .name("jdbcCursorItemReader")
+                .dataSource(dataSource)
+                .sql("select id, name, age from person")
+                .rowMapper((rs, rowNum) ->
+                    new Person(
+                            String.valueOf(rs.getInt(1)),
+                            rs.getString(2),
+                            rs.getInt(3))
+                )
+                .build();
+        itemReader.afterPropertiesSet();
+        return itemReader;
     }
 
     /**
