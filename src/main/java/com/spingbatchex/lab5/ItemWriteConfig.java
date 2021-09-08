@@ -121,7 +121,7 @@ public class ItemWriteConfig {
                 .name("flatFileItemWriterBuilder")
                 .encoding("UTF-8")
                 .lineAggregator(lineAggregator)
-                .resource(new FileSystemResource("output/test2.csv"))
+                .resource(new FileSystemResource("output/test.csv"))
                 .headerCallback(w -> w.write("id,이름,나이")) // 헤더필드 설정
                 .footerCallback(w -> w.write("=============\n")) // 푸터필드 설정
                 .append(true)
@@ -137,8 +137,8 @@ public class ItemWriteConfig {
 
     private List<Person> getItems() {
         List<Person> list = new ArrayList<>();
-        for (int i=0; i<10;i++) {
-            list.add(new Person("name" + i, 15));
+        for (int i=0; i<=100;i++) {
+            list.add(new Person("name" + i+1, 15));
         }
         return list;
     }
