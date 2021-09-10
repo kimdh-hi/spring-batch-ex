@@ -75,7 +75,7 @@ public class PersonSaveConfig {
         };
 
         CompositeItemProcessor<Person, Person> compositeItemProcessor = new CompositeItemProcessorBuilder<Person, Person>()
-                .delegates(personDuplicateValidateProcessor, validateProcessor)
+                .delegates(new PersonSaveRetryProcessor(), personDuplicateValidateProcessor, validateProcessor)
                 .build();
 
         return compositeItemProcessor;
