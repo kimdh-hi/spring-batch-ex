@@ -64,9 +64,11 @@ public class PersonSaveConfig {
 
     private ItemProcessor<? super Person, ? extends Person> itemProcessor(String allowDup) throws Exception {
 
+        // 중복검사를 포함하는 itemProcessor
         DuplicateValidateProcessor<Person> personDuplicateValidateProcessor
                 = new DuplicateValidateProcessor<Person>(Person::getName, Boolean.parseBoolean(allowDup));
 
+        //  이름이 empty인지 검사하는 itemProcessor
         ItemProcessor<Person, Person> validateProcessor = item -> {
 
             if (!item.getName().isEmpty()) return item;
@@ -74,6 +76,7 @@ public class PersonSaveConfig {
             throw new NotFoundNameException();
         };
 
+        // 총 3개 itemProcessor를 compositeItemProcessor로 순차적으로 실행돠도록 함
         CompositeItemProcessor<Person, Person> compositeItemProcessor = new CompositeItemProcessorBuilder<Person, Person>()
                 .delegates(new PersonSaveRetryProcessor(), personDuplicateValidateProcessor, validateProcessor)
                 .build();
