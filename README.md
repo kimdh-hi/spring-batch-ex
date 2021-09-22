@@ -6,3 +6,6 @@
 - `ItemWriter` (`FlatFileItemWriter`, `JdbcBatchItemWriter`, `JpaItemWriter`)
 - `ItemProcessor` (ItemProcessor 직접구헌(필터링), `CompositItemProcessor`)
 - `Exception` 처리 (`Skip`, `Retry`)
+
+📌 회원등급 업데이트 배치 구현 ( lab7 )
+- 누적 구매금액(totalAmount)에 따른 회원등급 업데이터 배치 처리
