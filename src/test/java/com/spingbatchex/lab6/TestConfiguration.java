@@ -15,4 +15,5 @@ public class TestConfiguration {
     public JobLauncherTestUtils jobLauncherTestUtils() {
         return new JobLauncherTestUtils();
     }
+
 }
